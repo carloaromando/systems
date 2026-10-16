@@ -11,7 +11,6 @@
           ./ssh.nix
           ./bat.nix
           ./lf.nix
-          ./micro.nix
           ./lisp.nix
         ];
 
@@ -26,7 +25,6 @@
           ./pkgs.nix
           ./pass.nix
           ./emacs
-          ./vscode.nix
         ];
 
         home.sessionVariables = {

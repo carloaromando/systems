@@ -14,39 +14,22 @@
     kcat
     shell2http
     tailscale
-    lagrange
-
-    # programming
-    bazelisk
-
-    ## ninja
-    ninja
 
     ## nix 
     nixpkgs-fmt
 
     ## python
     python3
-    poetry
-    pylint
-    black
-
-    ## js
-    nodejs
-    yarn
-
-    ## shell
-    shellcheck
 
     ## go
     go
 
-    ## misc
-    ansible
+    ## agentic
+    pi-coding-agent
+    pi-acp
 
     # virtualization
     qemu
-    # utm [Permission denied error when starting a new VM] 
 
     # container
     docker
@@ -64,6 +47,6 @@
     iina
     vlc
     alfred
-    # utm
+    orbstack
   ]);
 }

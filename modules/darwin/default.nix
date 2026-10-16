@@ -8,6 +8,8 @@
           imports = [
             self.homeModules.default
             self.inputs.mac-app-util.homeManagerModules.default
+            self.inputs.nix-index-database.homeModules.default
+            { programs.nix-index-database.comma.enable = true; }
           ];
         };
       };

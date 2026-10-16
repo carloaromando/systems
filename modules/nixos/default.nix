@@ -10,6 +10,8 @@
         home-manager.users.carlo = { pkgs, ... }: {
           imports = [
             self.homeModules.base
+            self.inputs.nix-index-database.homeModules.default
+            { programs.nix-index-database.comma.enable = true; }
           ];
         };
       };

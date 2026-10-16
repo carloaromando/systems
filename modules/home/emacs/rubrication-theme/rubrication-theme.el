@@ -5,6 +5,7 @@
       (fg-table "#222291")
       ;;(bg "#ffffff")
       (bg "#f5f4ed")
+      ;; (bg "#feeedf")
       (bg-light "#ddddd8")
       (fg-modeline "#eeeeee")
       (bg-modeline "#2c2c2c")

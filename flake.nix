@@ -3,10 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-
-    # nixpkgs-old pinned to revision: a0b3b06b7a82c965ae0bb1d59f6e386fe755001d because _coder_ is broken on the last unstable
-    # opened issue: https://github.com/NixOS/nixpkgs/issues/266037
-    nixpkgs-old.url = "github:NixOS/nixpkgs/835736de35faba3e57a7a4becc6b7e472ae72317";
+    nixpkgs-2511.url = "github:NixOS/nixpkgs/107cba9eb4a8d8c9f8e9e61266d78d340867913a";
+    nixpkgs-up.url = "github:NixOS/nixpkgs/68e5b9f7e82a76a5171d10b5d316e0ae5e1df6e9";
+    # last channel whose stdenv still builds on macOS 12
+    nixpkgs-2505.url = "github:NixOS/nixpkgs/nixos-25.05";
 
     nix-darwin = {
       url = "github:lnl7/nix-darwin/master";
@@ -26,7 +26,7 @@
     nixos-flake.url = "github:srid/nixos-flake";
 
     emacs-overlay = {
-      url = "github:nix-community/emacs-overlay";
+      url = "github:carloaromando/emacs-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -39,12 +39,17 @@
       url = "github:hraban/mac-app-util";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; }
       {
-        systems = [ "x86_64-darwin" "x86_64-linux" ];
+        systems = [ "x86_64-darwin" ];
 
         imports = [
           inputs.nixos-flake.flakeModule
@@ -65,19 +70,6 @@
                 ./modules/darwin/services/nfsd.nix
                 ./modules/darwin/services/dmenu.nix
                 ./modules/darwin/services/pueue.nix
-              ];
-            };
-          };
-
-          # Configurations for NixOS systems
-          nixosConfigurations = {
-            # UTM macOS VM
-            cthell = self.nixos-flake.lib.mkLinuxSystem {
-              nixpkgs.hostPlatform = "x86_64-linux";
-
-              imports = [
-                self.nixosModules.minimal
-                ./hosts/cthell
               ];
             };
           };

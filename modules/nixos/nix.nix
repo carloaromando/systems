@@ -15,14 +15,15 @@
     };
     overlays = [
       flake.inputs.emacs-overlay.overlays.default
-      (import ../../overlays/bazelisk.nix)
-      (import ../../overlays/coder.nix { inherit (flake.inputs) nixpkgs-old; })
+      (import ../../overlays/ytdlp.nix { nixpkgs = flake.inputs.nixpkgs-up; })
+      (import ../../overlays/pi.nix { nixpkgs = flake.inputs.nixpkgs-up; })
+      # (import ../../overlays/coder.nix { nixpkgs = flake.inputs.nixpkgs-2505; })
     ];
   };
 
   nix = {
     package = pkgs.nixUnstable;
-    registry.nixpkgs.flake = flake.inputs.nixpkgs; # Make `nix shell` etc use pinned nixpkgs
+    registry.nixpkgs.flake = flake.inputs.nixpkgs-up; # Make `nix shell` etc use pinned nixpkgs
     nixPath = [
       "nixpkgs=${flake.inputs.nixpkgs}"
       "nix-darwin=${flake.inputs.nix-darwin}"
@@ -32,7 +33,7 @@
       max-jobs = "auto";
       experimental-features = "nix-command flakes repl-flake"; # pipe-operators
       trusted-users = [ "root" "carlo" ];
-      always-allow-substitutes = true;
+      accept-flake-config = true;
       extra-nix-path = "nixpkgs=flake:nixpkgs";
     };
     # extraOptions = ''

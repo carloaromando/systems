@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ ... }:
 {
   programs.ssh = {
     enable = true;
@@ -28,16 +28,17 @@
         user = "ubuntu";
         identityFile = "~/.ssh/id_rsa";
       };
-      "cubbit-coder" = {
-        hostname = "coder.cubbit";
-        proxyCommand = "${lib.getExe pkgs.coder} --global-config \"/Users/carlo/Library/Application Support/coderv2\" ssh --stdio cubbit";
-        extraOptions = {
-          connectTimeout = "0";
-          userKnownHostsFile = "/dev/null";
-          strictHostKeyChecking = "no";
-          logLevel = "ERROR";
-        };
-      };
+      # disabled: pkgs.coder needs rewiring, see overlays/coder.nix
+      # "cubbit-coder" = {
+      #   hostname = "coder.cubbit";
+      #   proxyCommand = "${lib.getExe pkgs.coder} --global-config \"/Users/carlo/Library/Application Support/coderv2\" ssh --stdio cubbit";
+      #   extraOptions = {
+      #     connectTimeout = "0";
+      #     userKnownHostsFile = "/dev/null";
+      #     strictHostKeyChecking = "no";
+      #     logLevel = "ERROR";
+      #   };
+      # };
     };
   };
 }

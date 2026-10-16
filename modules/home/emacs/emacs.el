@@ -16,6 +16,9 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+(require 'use-package)
+(require 'bind-key)
+
 ;; Prevent creation of backup files. I'd rather manually handle that.
 (setq make-backup-files nil)
 
@@ -89,24 +92,43 @@
   :ensure nil
   :custom
   (compilation-scroll-output t)
-  (compilation-auto-jump-to-first-error t)
   (compilation-max-output-line-length nil))
+
+(defun gn/dired-create-and-edit-file ()
+  (interactive)
+  (let* ((default-dir (dired-get-file-for-visit))
+         (dir (if (file-directory-p default-dir)
+                  (file-name-as-directory default-dir)
+                (file-name-directory default-dir)))
+         (filename (read-file-name "Create and open file: " dir)))
+    (if (file-exists-p filename)
+        (find-file filename)
+      (write-region "" nil filename)
+      (revert-buffer)
+      (find-file filename)
+      (message "Created file %s" filename))))
 
 ;; Dired
 (use-package dired
   :ensure nil
   :init
-  (setq dired-recursive-copies 'always)
-  (setq dired-recursive-deletes 'always)
-  (setq delete-by-moving-to-trash t)
-  (setq insert-directory-program "/etc/profiles/per-user/carlo/bin/gls") ;; gnu ls need to be installed with home-manager
-  (setq dired-listing-switches
-        "-al --group-directories-first --time-style=long-iso")
-  (setq dired-make-directory-clickable t)
-  (setq dired-free-space nil)
-  (setq dired-mouse-drag-files t)
-  :hook ((dired-mode . dired-hide-details-mode)
-	 (dired-mode . hl-line-mode)))
+  (setq dired-recursive-copies 'always
+        dired-recursive-deletes 'always
+        dired-vc-rename-file t
+        delete-by-moving-to-trash t
+        dired-dwim-target t
+        ;; gnu ls, injected by nix home-manager
+        insert-directory-program "@glsPath@"
+        dired-listing-switches "-al --group-directories-first --time-style=long-iso")
+  :custom
+  (dired-make-directory-clickable t)
+  (dired-free-space nil)
+  (dired-mouse-drag-files t)
+  :hook
+  ((dired-mode . dired-hide-details-mode)
+   (dired-mode . hl-line-mode))
+  :bind
+  ("C-c C-n" . gn/dired-create-and-edit-file))
 
 ;; Dired subtree
 (use-package dired-subtree
@@ -131,6 +153,7 @@
 
 ;; Proced
 (use-package proced
+  :ensure nil ;; built into emacs, not a melpa package
   :config
   (setq proced-tree-flag t)
   (setq proced-format-alist
@@ -268,20 +291,23 @@
 (use-package lsp-mode
   :hook
   ((c-mode c++-mode) . lsp)
-  ;; ((c-mode c++-mode) . (lambda () (add-hook 'before-save-hook (lambda () (lsp-format-buffer)))))
   (lsp-mode . lsp-enable-which-key-integration)
   :config
   (setq gc-cons-threshold (* 100 1024 1024)
-      read-process-output-max (* 1024 1024)
-      company-idle-delay 0.0
-      company-minimum-prefix-length 1)
+	read-process-output-max (* 1024 1024)
+	company-idle-delay 0.0
+	company-minimum-prefix-length 1)
   :custom
+  ;; C++
   (lsp-clients-clangd-args '("-j=8"
                              "--background-index"
 			     "--header-insertion=never"
 			     "--compile-commands-dir=/Users/carlo/src/work/cubbit/" ;; find a way to use projectile root folder
 			     "--query-driver=/**/*"
 			     "--clang-tidy=true"))
+  ;; Rust
+  (lsp-rust-analyzer-linked-projects '("/Users/carlo/src/work/cubbit/coordinator/services/swarm-gateway/Cargo.toml")) ;; maybe better use .dir-locals.el
+  ;; Generic
   (lsp-enable-on-type-formatting nil)
   (lsp-idle-delay 0.1)
   :commands lsp)
@@ -294,6 +320,13 @@
   :commands lsp-ui-mode
   :config
   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+(use-package lsp-pyright
+  :load-path "/Users/carlo/.emacs.d/site-lisp/lsp-pyright" ;; this because we use on nixpkgs
+  :custom (lsp-pyright-langserver-command "basedpyright")
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp-deferred))))
 
 ;; Clang-Format
 (use-package clang-format
@@ -401,11 +434,26 @@
   ((lisp-mode . slime-mode)
    (inferior-lisp-mode . (lambda () (inferior-slime-mode 1)))))
 
+;; -----------------------------------------------------------------
+;; Evaluate this if you want to use slime with CCL
+;;
+;; (defun slime-interactive-eval (string)
+;;   "Eval STRING in CCL-compatible way for remote Swank."
+;;   (interactive (list (slime-read-from-minibuffer "Slime Eval: ")))
+;;   (cl-case current-prefix-arg
+;;     ((nil)
+;;      ;; Passiamo solo la stringa, CCL non accetta 3 argomenti
+;;      (slime-eval-with-transcript `(swank:interactive-eval ,string)))
+;;     ((-)
+;;      (slime-eval-save string))
+;;     (t
+;;      (slime-eval-print string))))
+
 (use-package slime-company
-  :after (slime company)
-  :config
-  (setq slime-company-completion 'fuzzy
-        slime-company-after-completion 'slime-company-just-one-space))
+	     :after (slime company)
+	     :config
+	     (setq slime-company-completion 'fuzzy
+		   slime-company-after-completion 'slime-company-just-one-space))
 
 ;; Paredit
 (use-package paredit
@@ -430,11 +478,40 @@
 ;; Pass
 (use-package password-store)
 
-;; Chat-GPT
-(use-package chatgpt-shell
+;; Coding agents (ACP)
+(use-package agent-shell
+  :commands (agent-shell-pi-start-agent)
   :custom
-  ((chatgpt-shell-openai-key (lambda ()
-			       "")))) ; TODO use pass
+  ;; pi-acp adapter, injected by nix home-manager
+  (agent-shell-pi-acp-command '("@piAcpCommand@")))
+
+(use-package agent-shell-permission-transient
+  :after agent-shell
+  :demand t
+  :config
+  (agent-shell-permission-transient-mode +1)
+  (define-key agent-shell-mode-map (kbd "C-c C-p")
+              #'agent-shell-permission-transient-menu))
+
+;; Go
+(use-package go-mode
+  :mode
+  (("\\.go\\'" . go-mode))
+  :hook
+  ((go-mode . lsp-deferred)
+   (go-mode . subword-mode)
+   (go-mode . (lambda () (add-hook 'before-save-hook 'gofmt-before-save)))
+   ;; (go-mode . (lambda ()
+   ;; 		(flycheck-add-next-checker 'lsp 'go-vet)
+   ;; 		(flycheck-add-next-checker 'lsp 'go-staticcheck)))
+
+   ))
+
+;; Rust
+(use-package rust-mode
+  :ensure nil
+  :mode "\\.rs\\'"
+  :hook ((rust-mode . lsp-deferred)))
 
 ;; Generic hooks
 (add-hook 'c-or-c++-mode (lambda () (electric-pair-mode +1)))
@@ -469,6 +546,7 @@
 (global-set-key (kbd "C-q") 'keyboard-quit)
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "C-,") 'duplicate-line)
+(global-set-key (kbd "C-.") 'duplicate-dwim)
 (global-set-key (kbd "C->") 'end-of-buffer)
 (global-set-key (kbd "C-<") 'beginning-of-buffer)
 (global-set-key (kbd "C-c C-d") 'dired)
@@ -509,6 +587,11 @@
 (global-set-key (kbd "C-M-<") 'mc/skip-to-previous-like-this)
 (global-set-key (kbd "C-M->") 'mc/skip-to-next-like-this)
 
+(fset 'copy-to-eol-and-return
+      (kmacro-lambda-form [?\C-@ ?\C-e ?\M-w ?\C-x ?\C-x ?\C-g] 0 "%d"))
+
+(global-set-key (kbd "C-c C-c") 'copy-to-eol-and-return)
+
 (global-unset-key (kbd "C-h C-h"))
 (global-unset-key (kbd "C-h C-h"))
 
@@ -519,4 +602,13 @@
 		    :height 120
                     :weight 'medium)
 
-(setq-default line-spacing 0)
+
+
+
+
+  (setq lsp-clients-clangd-args '("-j=8"
+                             "--background-index"
+			     "--header-insertion=never"
+			     "--compile-commands-dir=/Users/carlo/src/projects/feedbacker/build" ;; find a way to use projectile root folder
+			     "--query-driver=/**/*"
+			     "--clang-tidy=true"))
