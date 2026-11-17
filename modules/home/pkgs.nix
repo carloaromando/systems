@@ -27,6 +27,7 @@
     ## agentic
     pi-coding-agent
     pi-acp
+    kungfu
 
     # virtualization
     qemu

@@ -44,6 +44,8 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    agent-session-manager.url = "github:carloaromando/agent-session-manager";
   };
 
   outputs = inputs@{ self, flake-parts, ... }:

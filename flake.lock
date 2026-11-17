@@ -1,5 +1,20 @@
 {
   "nodes": {
+    "agent-session-manager": {
+      "locked": {
+        "lastModified": 1794930738,
+        "narHash": "sha256-vHrZIkFhL/dG3d1DCHaOvPtMsvazg7OvcHwL4dyzlKg=",
+        "owner": "carloaromando",
+        "repo": "agent-session-manager",
+        "rev": "dc1a37e14c30eade78abf084bf4c8e5367519042",
+        "type": "github"
+      },
+      "original": {
+        "owner": "carloaromando",
+        "repo": "agent-session-manager",
+        "type": "github"
+      }
+    },
     "cl-nix-lite": {
       "locked": {
         "lastModified": 1698901928,
@@ -291,6 +306,7 @@
     },
     "root": {
       "inputs": {
+        "agent-session-manager": "agent-session-manager",
         "emacs-overlay": "emacs-overlay",
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",

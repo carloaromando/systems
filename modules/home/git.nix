@@ -20,6 +20,10 @@ in
         condition = "gitdir:~/.password-store/";
       }
       {
+        contents = personalUserId;
+        condition = "gitdir:~/src/projects/";
+      }
+      {
         contents = {
           user = {
             name = "carlo-aromando";

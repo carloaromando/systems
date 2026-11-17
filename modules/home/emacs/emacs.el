@@ -423,7 +423,9 @@
 ;; Slime
 (use-package slime
   :config
-  (load (expand-file-name "~/quicklisp/slime-helper.el"))
+  ;; Use the swank bundled with this very slime package (from nixpkgs/MELPA).
+  ;; Loading ~/quicklisp/slime-helper.el would point slime at quicklisp's
+  ;; own, older slime checkout -> version mismatch warning + slow recompile.
   (setq inferior-lisp-program "sbcl")
   (add-to-list 'slime-contribs 'slime-banner)
   (add-to-list 'slime-contribs 'slime-company)
@@ -483,7 +485,9 @@
   :commands (agent-shell-pi-start-agent)
   :custom
   ;; pi-acp adapter, injected by nix home-manager
-  (agent-shell-pi-acp-command '("@piAcpCommand@")))
+  (agent-shell-pi-acp-command '("@piAcpCommand@"))
+  ;; one agent configured, so skip the picker everywhere
+  (agent-shell-preferred-agent-config 'pi))
 
 (use-package agent-shell-permission-transient
   :after agent-shell
@@ -492,6 +496,10 @@
   (agent-shell-permission-transient-mode +1)
   (define-key agent-shell-mode-map (kbd "C-c C-p")
               #'agent-shell-permission-transient-menu))
+
+(use-package agent-session-manager
+  :commands (agent-session-manager)
+  :bind ("C-c a" . agent-session-manager))
 
 ;; Go
 (use-package go-mode

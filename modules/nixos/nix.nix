@@ -17,6 +17,7 @@
       flake.inputs.emacs-overlay.overlays.default
       (import ../../overlays/ytdlp.nix { nixpkgs = flake.inputs.nixpkgs-up; })
       (import ../../overlays/pi.nix { nixpkgs = flake.inputs.nixpkgs-up; })
+      (import ../../overlays/kungfu.nix { nixpkgs = flake.inputs.nixpkgs-up; })
       # (import ../../overlays/coder.nix { nixpkgs = flake.inputs.nixpkgs-2505; })
     ];
   };

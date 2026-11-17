@@ -1,7 +1,9 @@
-{ pkgs, ... }:
+{ pkgs, flake, lib, ... }:
 let
   rubrication-theme = pkgs.callPackage ./rubrication-theme { inherit (pkgs.emacsPackages) trivialBuild; };
   rubricationThemePath = "${rubrication-theme}/share/emacs/site-lisp/rubrication-theme.el";
+  agentSessionManagerOverlay =
+    flake.inputs.agent-session-manager.overlays.default;
 in
 {
   programs.emacs = {
@@ -17,14 +19,17 @@ in
       };
       package = pkgs.emacs29-macport;
       alwaysEnsure = true;
-      override = epkgs: epkgs // {
-        inherit rubrication-theme;
-        # not on melpa, built from git
-        agent-shell-permission-transient =
-          pkgs.callPackage ./agent-shell-permission-transient {
-            inherit (epkgs) trivialBuild agent-shell transient;
-          };
-      };
+      override = lib.composeManyExtensions [
+        agentSessionManagerOverlay
+        (final: prev: {
+          inherit rubrication-theme;
+          # not on melpa, built from git
+          agent-shell-permission-transient =
+            pkgs.callPackage ./agent-shell-permission-transient {
+              inherit (prev) trivialBuild agent-shell transient;
+            };
+        })
+      ];
       extraEmacsPackages = epkgs: with epkgs; [
         use-package
       ];
